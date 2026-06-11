@@ -1,4 +1,3 @@
-```c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,6 +54,8 @@ void cadastrar_substancia();
 void mostrar_estoque();
 void realizar_venda();
 void mostrar_lucro_e_alertas();
+void remover_substancia();
+void editar_preco_substancia();
 
 int main() {
     inicializar_dados();
@@ -146,8 +147,10 @@ void menu_principal() {
         exibir_cabecalho("PAINEL PRINCIPAL");
         printf(COR_CIANO "  [1]" COR_BRANCO " Vender Substancia\n" COR_RESET);
         printf(COR_CIANO "  [2]" COR_BRANCO " Ver Estoque Atual\n" COR_RESET);
-        printf(COR_CIANO "  [3]" COR_BRANCO " Adicionar Nova Substancia\n" COR_RESET);
-        printf(COR_CIANO "  [4]" COR_BRANCO " Ver Relatorio de Vendas e Alertas\n" COR_RESET);
+        printf(COR_CIANO "  [3]" COR_BRANCO " Adicionar nova substancia ao estoque\n" COR_RESET);
+        printf(COR_CIANO "  [4]" COR_BRANCO " Remover substancia do estoque\n" COR_RESET);
+        printf(COR_CIANO "  [5]" COR_BRANCO " Editar preco de substancia\n" COR_RESET);
+        printf(COR_CIANO "  [6]" COR_BRANCO " Ver Relatorio de Vendas e Alertas\n" COR_RESET);
         printf(COR_VERMELHO "  [0]" COR_BRANCO " Sair do Sistema\n" COR_RESET);
         printf(COR_ROXO "---------------------------------------------------------\n" COR_RESET);
         printf(" Escolha o que quer fazer: ");
@@ -158,7 +161,9 @@ void menu_principal() {
             case 1: realizar_venda(); break;
             case 2: mostrar_estoque(); break;
             case 3: cadastrar_substancia(); break;
-            case 4: mostrar_lucro_e_alertas(); break;
+            case 4: remover_substancia(); break;
+            case 5: editar_preco_substancia(); break;
+            case 6: mostrar_lucro_e_alertas(); break;
             case 0: 
                 limpar_tela();
                 printf(COR_VERMELHO "\n Fechando sistema...\n\n" COR_RESET);
@@ -193,7 +198,13 @@ void cadastrar_substancia() {
         return;
     }
 
-    p.id = qtd_produtos + 1;
+    int max_id = 0;
+    for (int i = 0; i < qtd_produtos; i++) {
+        if (estoque[i].id > max_id) {
+            max_id = estoque[i].id;
+        }
+    }
+    p.id = max_id + 1;
     
     printf(" Preco de Venda (R$): ");
     p.preco = ler_float_seguro();
@@ -219,6 +230,114 @@ void mostrar_estoque() {
         printf(" [%02d] %-25s R$ %-13.2f %-10d\n", estoque[i].id, estoque[i].nome, estoque[i].preco, estoque[i].estoque);
     }
     printf(COR_ROXO "---------------------------------------------------------\n" COR_RESET);
+    printf("\nAperte Enter para voltar.");
+    getchar();
+}
+
+void remover_substancia() {
+    if (qtd_produtos == 0) {
+        exibir_cabecalho("REMOVER SUBSTANCIA");
+        printf(COR_VERMELHO " Nao ha nenhuma substancia cadastrada no estoque.\n" COR_RESET);
+        printf("\nAperte Enter para voltar.");
+        getchar();
+        return;
+    }
+
+    exibir_cabecalho("REMOVER SUBSTANCIA");
+    printf(COR_BRANCO " O que tem na casa:\n" COR_RESET);
+    for (int i = 0; i < qtd_produtos; i++) {
+        printf("   ID: %d | %-15s | Preco: R$ %.2f | No Estoque: %d\n", estoque[i].id, estoque[i].nome, estoque[i].preco, estoque[i].estoque);
+    }
+    printf(COR_ROXO "---------------------------------------------------------\n" COR_RESET);
+    
+    printf(" Digite o ID da substancia que deseja remover (ou 0 para cancelar): ");
+    int id_busca = ler_inteiro_seguro();
+
+    if (id_busca == 0) {
+        printf(COR_AMARELO "\n Operacao cancelada.\n" COR_RESET);
+        printf("\nAperte Enter para voltar.");
+        getchar();
+        return;
+    }
+
+    int index = -1;
+    for (int i = 0; i < qtd_produtos; i++) {
+        if (estoque[i].id == id_busca) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1) {
+        printf(COR_VERMELHO "\n Substancia nao encontrada.\n" COR_RESET);
+        printf("\nAperte Enter para voltar.");
+        getchar();
+        return;
+    }
+
+    for (int i = index; i < qtd_produtos - 1; i++) {
+        estoque[i] = estoque[i + 1];
+    }
+    
+    qtd_produtos--;
+
+    printf(COR_VERDE "\n Substancia removida com sucesso!\n" COR_RESET);
+    printf("\nAperte Enter para voltar.");
+    getchar();
+}
+
+void editar_preco_substancia() {
+    if (qtd_produtos == 0) {
+        exibir_cabecalho("EDITAR PRECO");
+        printf(COR_VERMELHO " Nao ha nenhuma substancia cadastrada no estoque.\n" COR_RESET);
+        printf("\nAperte Enter para voltar.");
+        getchar();
+        return;
+    }
+
+    exibir_cabecalho("EDITAR PRECO");
+    printf(COR_BRANCO " O que tem na casa:\n" COR_RESET);
+    for (int i = 0; i < qtd_produtos; i++) {
+        printf("   ID: %d | %-15s | Preco: R$ %.2f | No Estoque: %d\n", estoque[i].id, estoque[i].nome, estoque[i].preco, estoque[i].estoque);
+    }
+    printf(COR_ROXO "---------------------------------------------------------\n" COR_RESET);
+
+    printf(" Digite o ID da substancia que deseja editar (ou 0 para cancelar): ");
+    int id_busca = ler_inteiro_seguro();
+
+    if (id_busca == 0) {
+        printf(COR_AMARELO "\n Operacao cancelada.\n" COR_RESET);
+        printf("\nAperte Enter para voltar.");
+        getchar();
+        return;
+    }
+
+    int index = -1;
+    for (int i = 0; i < qtd_produtos; i++) {
+        if (estoque[i].id == id_busca) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1) {
+        printf(COR_VERMELHO "\n Substancia nao encontrada.\n" COR_RESET);
+        printf("\nAperte Enter para voltar.");
+        getchar();
+        return;
+    }
+
+    printf(" Preco atual: R$ %.2f\n", estoque[index].preco);
+    printf(" Digite o novo preco (R$): ");
+    float novo_preco = ler_float_seguro();
+
+    if (novo_preco < 0) {
+        printf(COR_VERMELHO "\n Preco invalido. Operacao cancelada.\n" COR_RESET);
+    } else {
+        estoque[index].preco = novo_preco;
+        printf(COR_VERDE "\n Preco atualizado com sucesso!\n" COR_RESET);
+    }
+
     printf("\nAperte Enter para voltar.");
     getchar();
 }
